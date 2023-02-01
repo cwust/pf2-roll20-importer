@@ -10,15 +10,15 @@ export class FoundryToRoll20Service {
 
   convertFoundrySheetToRoll20(from: any): Roll20NpcSheet {
     return {
-      attr_character_name: from.system.name,
+      attr_character_name: from.name,
       attr_npc_type: from.system.details.creatureType,
       attr_level: from.system.details.level.value,
-      attr_alignment: from.system.details.alignment,
+      attr_alignment: from.system.details.alignment.value,
       attr_size: from.system.traits.size.value,
-      attr_traits: from.system.traits.value,
+      attr_traits: this.join(from.system.traits.value),
       attr_perception: from.system.attributes.perception.value,
       attr_senses: this.join(from.system.traits.senses, (s: any) => s.value),
-      attr_languages: (from.system.traits.languages.value || []).map((s: any) => s.value),
+      attr_languages: this.join(from.system.traits.languages.value),
       attr_npc_short_description: from.system.details.publicNotes.replaceAll('<p>', '').replaceAll('</p>', ''),
       attr_acrobatics: this.extractSkill(from, 'acrobatics'),
       attr_arcana: this.extractSkill(from, 'arcana'),
@@ -108,7 +108,7 @@ export class FoundryToRoll20Service {
     }
 
     return {
-      containerSelector: 'TODO',
+      containerSelector: 'div.npc-items',
       items: items.map((it: any) => ({
         attr_worn_item: it.name,
         attr_worn_misc: it.system.description.replaceAll('<p>', '').replaceAll('</p>', ''),
@@ -125,7 +125,7 @@ export class FoundryToRoll20Service {
     }
 
     return {
-      containerSelector: 'TODO',
+      containerSelector: 'div.npc-interaction-abilities',
       items: items.map((it: any) => ({
         attr_name: it.name,
         attr_rep_traits: this.join(it.system.traits.value),
@@ -142,7 +142,7 @@ export class FoundryToRoll20Service {
     }
 
     return {
-      containerSelector: 'TODO',
+      containerSelector: 'div.npc-free-actions-reactions',
       items: items.map((it: any) => ({
         attr_name: it.name,
         checkbox_free_action_attr_free_action: it.system.actionType == 'free' ? 'free action' : null,
@@ -150,7 +150,7 @@ export class FoundryToRoll20Service {
         attr_rep_traits: this.join(it.system.rules.length ? it.system.rules[0].traits : []),
         attr_source: null,
         attr_trigger: null, //TODO: it's in the middle of the description of the text
-        textarea_attr_description: it.system.description, //TODO remove HTML
+        textarea_attr_description: it.system.description.value, //TODO remove HTML
       }))
     };
   }
@@ -163,7 +163,7 @@ export class FoundryToRoll20Service {
     }
 
     return {
-      containerSelector: 'TODO',
+      containerSelector: 'div.npc-melee-strikes',
       items: items.map((it: any) => ({
         attr_weapon: it.name,
         attr_weapon_strike: it.system.bonus,
@@ -185,7 +185,7 @@ export class FoundryToRoll20Service {
     }
 
     return {
-      containerSelector: 'TODO',
+      containerSelector: 'div.npc-ranged-strikes',
       items: items.map((it: any) => ({
         attr_weapon: it.name,
         attr_weapon_strike: it.system.bonus,
@@ -208,13 +208,13 @@ export class FoundryToRoll20Service {
     }
 
     return {
-      containerSelector: 'TODO',
+      containerSelector: 'div.npc-actions-and-activies',
       items: items.map((it: any) => ({
         attr_name: it.name,
         attr_actions: this.getActions(it),
         attr_rep_traits: this.join(it.system.traits.value),
         attr_source: null,
-        textarea_attr_description: it.system.description, //TODO remove HTML
+        textarea_attr_description: it.system.description.value, //TODO remove HTML
       }))
     };
   }

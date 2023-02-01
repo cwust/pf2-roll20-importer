@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { TreeNode } from 'primeng/api';
+import { BrowserService } from './browser-service';
 import { FoundryPF2GithubService } from './foundry-pf2-github.service';
 import { FoundryToRoll20Service } from './foundry-to-roll20.service';
 
@@ -16,7 +17,8 @@ export class AppComponent implements OnInit {
 
   constructor(
     private foundryPF2GithubService: FoundryPF2GithubService,
-    private foundryToRoll20Service: FoundryToRoll20Service
+    private foundryToRoll20Service: FoundryToRoll20Service,
+    private browserService: BrowserService
   ) {
 
   }
@@ -73,6 +75,7 @@ export class AppComponent implements OnInit {
       console.log('From github: ', creature);
       const roll20Sheet = this.foundryToRoll20Service.convertFoundrySheetToRoll20(creature);
       console.log('Roll20 Sheet', roll20Sheet);
+      this.browserService.sendMessage('importCreature', roll20Sheet);
     });
   }
 
