@@ -19,7 +19,7 @@ export class FoundryToRoll20Service {
       attr_perception: from.system.attributes.perception.value,
       attr_senses: this.join(from.system.traits.senses, (s: any) => s.value),
       attr_languages: this.join(from.system.traits.languages.value),
-      attr_npc_short_description: from.system.details.publicNotes.replaceAll('<p>', '').replaceAll('</p>', ''),
+      attr_npc_short_description: this.parseDescription(from.system.details.publicNotes),
       attr_acrobatics: this.extractSkill(from, 'acrobatics'),
       attr_arcana: this.extractSkill(from, 'arcana'),
       attr_athletics: this.extractSkill(from, 'athletics'),
@@ -111,7 +111,7 @@ export class FoundryToRoll20Service {
       containerSelector: 'div.npc-items',
       items: items.map((it: any) => ({
         attr_worn_item: it.name,
-        attr_worn_misc: it.system.description.replaceAll('<p>', '').replaceAll('</p>', ''),
+        textarea_attr_worn_misc: this.parseDescription(it.system.description.value),
         textarea_attr_description: null
       }))
     };
@@ -129,7 +129,7 @@ export class FoundryToRoll20Service {
       items: items.map((it: any) => ({
         attr_name: it.name,
         attr_rep_traits: this.join(it.system.traits.value),
-        textarea_attr_description: null
+        textarea_attr_description: this.parseDescription(it.system.description.value)
       }))
     };
   }
@@ -150,7 +150,7 @@ export class FoundryToRoll20Service {
         attr_rep_traits: this.join(it.system.rules.length ? it.system.rules[0].traits : []),
         attr_source: null,
         attr_trigger: null, //TODO: it's in the middle of the description of the text
-        textarea_attr_description: it.system.description.value, //TODO remove HTML
+        textarea_attr_description: this.parseDescription(it.system.description.value),
       }))
     };
   }
@@ -166,7 +166,7 @@ export class FoundryToRoll20Service {
       containerSelector: 'div.npc-melee-strikes',
       items: items.map((it: any) => ({
         attr_weapon: it.name,
-        attr_weapon_strike: it.system.bonus,
+        attr_weapon_strike: it.system.bonus.value,
         attr_weapon_traits: this.join(it.system.traits.value),
         checkbox_1_attr_weapon_agile: ((it.system.traits.value || []).indexOf('agile') >= 0) ? '1' : null,
         attr_weapon_strike_damage: this.getDamageRoll(it).damage,
@@ -188,7 +188,7 @@ export class FoundryToRoll20Service {
       containerSelector: 'div.npc-ranged-strikes',
       items: items.map((it: any) => ({
         attr_weapon: it.name,
-        attr_weapon_strike: it.system.bonus,
+        attr_weapon_strike: it.system.bonus.value,
         attr_weapon_traits: this.join(it.system.traits.value),
         checkbox_1_attr_weapon_agile: ((it.system.traits.value || []).indexOf('agile') >= 0) ? '1' : null,
         attr_weapon_strike_damage: this.getDamageRoll(it).damage,
@@ -214,7 +214,7 @@ export class FoundryToRoll20Service {
         attr_actions: this.getActions(it),
         attr_rep_traits: this.join(it.system.traits.value),
         attr_source: null,
-        textarea_attr_description: it.system.description.value, //TODO remove HTML
+        textarea_attr_description: this.parseDescription(it.system.description.value),
       }))
     };
   }
@@ -232,11 +232,14 @@ export class FoundryToRoll20Service {
       return null;
     }
 
-    if (!extractor) {
-      return arr.join(', ');
+    let arrStr : string[];
+    if (extractor) {
+      arrStr = arr.map(it => extractor(it));
     } else {
-      return arr.map(it => extractor(it)).map((str: string) => str.replaceAll('-', '')).join(', ');
+      arrStr = arr as string[];
     }
+
+    return arrStr.map((str: string) => str.replaceAll('-', ' ')).join(', ');
   }
 
   private weaknessResistanceText(val: { type: string, value: number, exceptions?: string[] }): string {
@@ -274,5 +277,21 @@ export class FoundryToRoll20Service {
     } else {
       return '+' + mod;
     }
+  }
+
+  private parseDescription(description: string): string {
+    if (!description || !description.replaceAll) {
+      return description;
+    }
+
+    return description
+      .replaceAll(/<p>|<\/p>|<hr \/>|<strong>|<ul>|<\/ul>|<\/li>|<em>|<\/em>/g, '')
+      .replaceAll('</strong>', ':')
+      .replaceAll('<li>', '- ')
+      .replaceAll(/@Check\[type:(.*)\|(dc:\d+).*\]/g, '$1 saving throw, $2')
+      .replaceAll(/@\w*\[.*\]\{(.*)\}/g, '"$1"')
+      .replaceAll(/\[\[\/\w+\s*[^\[\]]*(?:\[[^\]]*\])?\]\]\{([^\}]*)\}/g, "$1")
+      .replaceAll(/\[\[\/r\s*([^\[\]]*)(?:\[([^\]]*)\])?\]\]/g, "$1 $2")
+      .replaceAll(/@\w*\[.*\]/g, '')
   }
 }

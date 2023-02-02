@@ -208,6 +208,14 @@
             clickNpcSettingsButton: async function () {
                 return this.click('div.npc button.pictos[name=act_toggle_npcsettings]', true);
             },
+            deletePlaceholderStrike: async function() {
+                await sleep(100);
+                await this.click('div.npc-melee-strikes .repcontrol_edit', true);
+                await sleep(100);
+                await this.click('div.npc-melee-strikes .repcontainer .repitem:nth-child(1) .repcontrol_del', true);
+                await sleep(100);
+                await this.click('div.npc-melee-strikes .repcontrol_edit', true); 0
+            },
             fillField: async function (container, attr, value) {
                 if (value === null || value === undefined) {
                     return;
@@ -217,7 +225,7 @@
 
                 const matcher = /checkbox_(?<value>.*)_(?<attr>attr_.*)/.exec(attr);
                 if (matcher) {
-                    const selector = container + ' input[name=' + attr + ']:not([type=hidden])';
+                    const selector = container + ' input[name=' + matcher.groups.attr + ']:not([type=hidden])';
                     const element = await this.getElement(selector, true);
                     if (element.value == value) {
                         //already has the value, it's probably a checkbox
@@ -235,6 +243,7 @@
                 }
             },
             copyRepeatingItems: async function (repeatingSection) {
+                console.log('copyRepeatingItems', repeatingSection);
                 if (!repeatingSection || !repeatingSection.items) {
                     return;
                 };
@@ -275,6 +284,8 @@
                 await this.waitForNpcSettingsVisible();
 
                 await sleep(3000);
+
+                await this.deletePlaceholderStrike();
 
                 for (let attr in roll20Sheet) {
                     if (attr == 'attr_hit_points') {

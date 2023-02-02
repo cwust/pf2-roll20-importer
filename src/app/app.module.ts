@@ -6,7 +6,12 @@ import { ButtonModule } from 'primeng/button';
 
 import { AppComponent } from './app.component';
 
-(window as any).browser.tabs.executeScript({ file: "/assets/js/import-creature.js" });
+const browser = (window as any).browser;
+
+if (browser) {
+  browser.tabs.executeScript({ file: "/assets/js/import-creature.js" });
+}
+
 
 @NgModule({
   declarations: [
